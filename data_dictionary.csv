@@ -1,0 +1,93 @@
+table,field,dtype,nullable,null_pct,example_value,business_meaning,caveat
+fact_transactions,txn_id,str,False,0.0,TXN00011869,"Transaction identifier, normalized to TXNnnnnnnnn (8-digit, zero-padded)",Transaction PK
+fact_transactions,timestamp,"datetime64[us, UTC+05:30]",False,0.0,2026-01-15 00:11:30+05:30,"Transaction time, parsed to IST-aware datetime; epoch-seconds and 6 text formats normalized",-
+fact_transactions,user_id,str,False,0.0,USR45826,"Raw payer identifier, normalized to USRnnnnn","Descriptive attribute only - NOT an enforced FK (see Open Question #1, ~32% match to dim_users)"
+fact_transactions,merchant_id,str,False,0.0,MCH7045,"Raw payee identifier, normalized to MCHnnnn",Descriptive attribute only - NOT an enforced FK (~48% match to dim_merchants)
+fact_transactions,amount,float64,False,0.0,15722.34,"Transaction amount in INR, currency symbols/commas stripped, sign made absolute",See amount_had_negative_sign
+fact_transactions,utr,str,True,5.0,UTR6498104698,"Unique Transaction Reference, format-normalized (uppercased, spaces removed)","5% missing, never fabricated"
+fact_transactions,mcc,str,True,14.36,5411,"Merchant Category Code, leading zeros stripped",14.3% missing
+fact_transactions,status,str,False,0.0,SUCCESS,Controlled vocabulary: SUCCESS/FAILED/PENDING/PROCESSING,14 raw spellings collapsed
+fact_transactions,amount_raw,str,False,0.0,15722.34,Original amount string before cleaning,Audit trail
+fact_transactions,amount_had_negative_sign,bool,False,0.0,False,True if the raw value had a '-' sign,"Sign-corruption noise, not refund semantics - see Open Question #2"
+fact_transactions,timestamp_raw,str,False,0.0,2026-01-15 00:11:30,Original timestamp string before cleaning,Audit trail
+fact_transactions,timestamp_was_epoch,bool,False,0.0,False,True if the raw value was Unix epoch seconds,5.0% of rows
+fact_transactions,utr_raw,str,True,5.0,UTR6498104698,Original UTR string before cleaning,Audit trail
+fact_transactions,utr_is_invalid_format,bool,False,0.0,False,True if UTR present but does not match UTR\d+,0 rows currently
+fact_transactions,mcc_raw,str,True,14.36,5411,Original MCC string before cleaning,Audit trail
+fact_transactions,status_raw,str,False,0.0,COMPLETED,Original status string before cleaning,Audit trail
+fact_transactions,is_conflicting_duplicate_id,bool,False,0.0,False,True if txn_id collides with another row after exact-dup removal,0 rows currently; excluded from KPI counts defensively
+dim_users,user_id,str,False,0.0,USR16112,"Payer identifier, normalized to USRnnnnn",NOT unique per person - see identity-collision finding
+dim_users,full_name,str,False,0.0,Dhriti Deshmukh,Customer name as recorded,-
+dim_users,pan,str,True,5.21,SEJAA8194O,"PAN, uppercased/normalized",Never fabricated; see pan_status
+dim_users,aadhaar,str,True,7.31,715658320763,"Aadhaar, masked values preserved as masked",Never unmasked or fabricated
+dim_users,date_of_birth,string,True,8.09,1967-04-06,Parsed date (ISO string),6 formats + epoch (incl. negative pre-1970) normalized
+dim_users,city,str,False,0.0,Mumbai,Canonicalized city name (e.g. Bombay->Mumbai),See src/config.CITY_MAP
+dim_users,state,str,False,0.0,Maharashtra,Title-cased state name,-
+dim_users,monthly_income,float64,True,12.97,35119.0,Numeric income in INR,"'Not Available' and similar treated as disguised null, not 0"
+dim_users,occupation,str,False,0.0,Retired,Title-cased occupation,-
+dim_users,signup_timestamp,"datetime64[us, UTC+05:30]",True,7.99,2025-12-02 02:18:16+05:30,"Parsed signup datetime, IST",-
+dim_users,kyc_status,str,False,0.0,VERIFIED,Controlled vocabulary: VERIFIED/PENDING/IN_PROGRESS/REJECTED,16 raw spellings collapsed
+dim_users,risk_segment,str,False,0.0,LOW,Controlled vocabulary: LOW/MEDIUM/HIGH/UNKNOWN,-
+dim_users,user_id_raw,str,False,0.0,USR16112,Original user_id string before normalization,Audit trail
+dim_users,user_id_has_identity_collision,bool,False,0.0,False,True if this user_id also appears with a different name/PAN elsewhere in the file,85% of duplicate-key groups - see Open Question #1
+dim_users,pan_raw,str,True,5.21,SEJAA8194O,Original PAN string before normalization,Audit trail
+dim_users,pan_status,str,False,0.0,valid,valid / invalid_format / missing,-
+dim_users,aadhaar_raw,str,True,7.31,715658320763,Original Aadhaar string before normalization,Audit trail
+dim_users,aadhaar_status,str,False,0.0,valid,valid / masked / invalid_length / missing,-
+dim_users,date_of_birth_raw,str,True,8.09,06/04/1967 12:14 AM,Original date_of_birth string before parsing,Audit trail
+dim_users,age_years,float64,True,8.09,59.4,Derived age at pipeline-run time,-
+dim_users,dob_implausible_age_flag,bool,False,0.0,False,True if implied age <13 or >100,"Flagged, not dropped"
+dim_users,monthly_income_raw,str,True,8.04,35119,Original monthly_income string before cleaning,Audit trail
+dim_users,city_raw,str,False,0.0,Bombay,Original city string before canonicalization,Audit trail
+dim_users,signup_timestamp_raw,str,True,7.99,2025-12-02 02:18:16,Original signup_timestamp string before parsing,Audit trail
+dim_users,kyc_status_raw,str,False,0.0,Done,Original kyc_status string before normalization,Audit trail
+dim_users,risk_segment_raw,str,False,0.0,LOW,Original risk_segment string before normalization,Audit trail
+dim_merchants,merchant_id,str,False,0.0,MCH2849,"Payee identifier, normalized to MCHnnnn",NOT unique per merchant - see identity-collision finding
+dim_merchants,merchant_name,str,False,0.0,"BHAVSAR, KOTA AND ZACHARIA","Merchant business name, whitespace-normalized",-
+dim_merchants,mcc,str,True,11.16,7011,"Merchant Category Code, leading zeros/float-suffix stripped",-
+dim_merchants,merchant_category,str,False,0.0,Hotel/Lodging,"Canonical category (12 values, from 82 raw labels)",See MERCHANT_CATEGORY_MAP in src/cleaning/merchants.py
+dim_merchants,business_type,str,False,0.0,Private Limited,Controlled vocabulary: Individual/Partnership/Sole Proprietor/Private Limited,-
+dim_merchants,city,str,False,0.0,Ludhiana,Canonicalized city name (e.g. Bombay->Mumbai),See src/config.CITY_MAP
+dim_merchants,state,str,False,0.0,Punjab,Title-cased state name,-
+dim_merchants,onboarding_date,"datetime64[us, UTC+05:30]",True,8.05,2025-09-23 00:00:00+05:30,"Parsed onboarding datetime, IST",-
+dim_merchants,merchant_status,str,False,0.0,INACTIVE,Controlled vocabulary: ACTIVE/INACTIVE/SUSPENDED/BLOCKED,-
+dim_merchants,declared_avg_ticket_size,float64,True,5.99,2432.18,Numeric declared average ticket size in INR,Same currency-cleaning as transaction amount
+dim_merchants,merchant_id_raw,str,False,0.0,mch2849,Original merchant_id string before normalization,Audit trail
+dim_merchants,merchant_id_has_identity_collision,bool,False,0.0,True,True if this merchant_id also appears with a different name elsewhere in the file,93% of duplicate-key groups
+dim_merchants,mcc_raw,str,True,8.28,MCC-7011,Original MCC string before cleaning,Audit trail
+dim_merchants,merchant_category_raw,str,False,0.0,hotel_lodging,Original merchant_category string before mapping,Audit trail
+dim_merchants,merchant_category_was_mapped,bool,False,0.0,True,True if the raw category matched a known family,100% currently
+dim_merchants,business_type_raw,str,False,0.0,Private Limited,Original business_type string before normalization,Audit trail
+dim_merchants,city_raw,str,False,0.0,Ludhiana,Original city string before canonicalization,Audit trail
+dim_merchants,onboarding_date_raw,str,True,8.05,09-23-2025,Original onboarding_date string before parsing,Audit trail
+dim_merchants,settlement_account_raw_present,bool,False,0.0,False,True if a raw value existed before masking,39.5% originally missing
+dim_merchants,settlement_account_masked,str,True,39.45,XXXX9858,"Settlement account, always masked to XXXX+last4","Never exposed in full, per privacy requirement"
+dim_merchants,merchant_status_raw,str,False,0.0,Inactive,Original merchant_status string before normalization,Audit trail
+dim_merchants,declared_avg_ticket_size_raw,str,True,5.99,"INR 2,432.18",Original declared_avg_ticket_size string before cleaning,Audit trail
+dim_merchants,declared_avg_ticket_size_had_negative_sign,bool,False,0.0,False,True if the raw value had a '-' sign,-
+fact_chargebacks,complaint_id,str,False,0.0,CBK0002082,Chargeback/dispute identifier,Complaint PK
+fact_chargebacks,txn_id,str,True,2.75,TXN00004325,Normalized TXNnnnnnnnn - resolved via 3 raw format families,93.1% match rate to fact_transactions - the ONE reliable identity join in this dataset
+fact_chargebacks,user_id,str,False,0.0,USR97580,Raw user_id as recorded on the complaint,Independently-sourced field - NOT guaranteed to match the underlying transaction's user_id (see Open Question #1)
+fact_chargebacks,merchant_id,str,False,0.0,MCH1127,Raw merchant_id as recorded on the complaint,Same caveat as user_id - resolve via txn_id for a defensible merchant link (see src/fraud/risk_engine.py)
+fact_chargebacks,transaction_timestamp,"datetime64[us, UTC+05:30]",True,8.21,2026-01-28 00:00:00+05:30,"Parsed underlying-transaction time, IST",-
+fact_chargebacks,reported_timestamp,"datetime64[us, UTC+05:30]",True,7.25,2026-02-01 00:00:00+05:30,"Parsed dispute-filing time, IST",-
+fact_chargebacks,disputed_amount,float64,True,6.39,414.69,Numeric disputed amount in INR,-
+fact_chargebacks,reason_code,str,False,0.0,Service Not Delivered,"Canonical reason (6 values, from 34 raw labels)",See REASON_CODE_MAP in src/config.py
+fact_chargebacks,complaint_text,str,False,0.0,Customer says amount was debited twice.,Free-text complaint description,-
+fact_chargebacks,resolution_status,str,False,0.0,CLOSED,Controlled vocabulary: OPEN/IN_PROGRESS/PENDING_BANK/RESOLVED/REJECTED/CLOSED,-
+fact_chargebacks,bank_response_timestamp,"datetime64[us, UTC+05:30]",True,25.04,2026-02-10 03:19:10+05:30,"Parsed bank-response time, IST","24.9% missing - valid state, not a defect (not every case has a response yet)"
+fact_chargebacks,severity,str,False,0.0,Critical,Controlled vocabulary: Low/Medium/High/Critical,"P-code mapping (P1-P4) is a DOCUMENTED ASSUMPTION, not stated in source data - see src/config.SEVERITY_MAP"
+fact_chargebacks,channel,str,False,0.0,IVR,Controlled vocabulary: Email/Branch/IVR/Chatbot/App/Call Center,-
+fact_chargebacks,txn_id_raw,str,True,2.75,TXN00004325,Original txn_id string before normalization,Audit trail
+fact_chargebacks,user_id_raw,str,False,0.0,usr97580,Original user_id string before normalization,Audit trail
+fact_chargebacks,merchant_id_raw,str,False,0.0,mch1127,Original merchant_id string before normalization,Audit trail
+fact_chargebacks,transaction_timestamp_raw,str,True,8.21,2026/01/28,Original transaction_timestamp string before parsing,Audit trail
+fact_chargebacks,reported_timestamp_raw,str,True,7.25,02-01-2026,Original reported_timestamp string before parsing,Audit trail
+fact_chargebacks,bank_response_timestamp_raw,str,True,25.04,2026-02-10 03:19:10,Original bank_response_timestamp string before parsing,Audit trail
+fact_chargebacks,report_delay_days,float64,True,14.71,4.0,"reported_timestamp - transaction_timestamp, in days","Negative values flagged, excluded from delay KPIs"
+fact_chargebacks,disputed_amount_raw,str,True,6.39,414.69,Original disputed_amount string before cleaning,Audit trail
+fact_chargebacks,disputed_amount_had_negative_sign,bool,False,0.0,False,True if raw value had a '-' sign,-
+fact_chargebacks,reason_code_raw,str,False,0.0,Merchant Not Delivered,Original reason_code string before mapping,Audit trail
+fact_chargebacks,resolution_status_raw,str,False,0.0,CLOSED,Original resolution_status string before normalization,Audit trail
+fact_chargebacks,severity_raw,str,False,0.0,Critical,Original severity string before normalization,Audit trail
+fact_chargebacks,channel_raw,str,False,0.0,ivr,Original channel string before normalization,Audit trail
