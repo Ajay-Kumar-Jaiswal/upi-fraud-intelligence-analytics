@@ -141,14 +141,12 @@ pytest tests/ -q
 
 # Start the dashboard
 streamlit run dashboard/app.py
-# -> open http://localhost:8501
 ```
 
 ### Optional: AI Analyst LLM phrasing polish
 ```bash
 cp .env.example .env
-# edit .env and set ANTHROPIC_API_KEY=sk-ant-...
-export $(cat .env | xargs)   # or use python-dotenv / your platform's secret manager
+export $(cat .env | xargs)   
 streamlit run dashboard/app.py
 ```
 The AI Analyst is fully correct and fully functional **without** this — it only affects
@@ -156,8 +154,8 @@ phrasing, never the numbers.
 
 ## 14. Testing
 ```bash
-pytest tests/ -v          # 121 tests: cleaning (39), analytics (37), fraud/risk (11),
-                           # graph (11), agent (23)
+pytest tests/ -v          
+                          
 ```
 All tests run against the **actual uploaded dataset**, not synthetic fixtures. Includes
 divide-by-zero/empty-data guards, regression guards for documented data-quality findings
@@ -186,8 +184,8 @@ project/
 ├── dashboard/{app.py,pages/,components/,data_loader.py}
 ├── agent/{router.py,query_engine.py,analyst.py,llm_provider.py}
 ├── tests/
-├── reports/            # DATA_AUDIT.md, DATA_QUALITY_EVIDENCE.md, analytics_validation.md, *.csv
-├── scripts/            # run_pipeline.py, run_all.py, generate_*.py
+├── reports/           
+├── scripts/            
 ├── data_dictionary.csv
 ├── requirements.txt, .env.example, .gitignore
 ├── Dockerfile, Procfile, runtime.txt, .streamlit/config.toml
