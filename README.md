@@ -128,10 +128,8 @@ supported — never a guess.
 ```bash
 git clone <this-repo>
 cd <this-repo>
-python -m venv venv && source venv/bin/activate   # optional but recommended
+python -m venv venv && source venv/bin/activate  
 pip install -r requirements.txt
-
-# Place the 4 raw files in data/raw/ (already present if you cloned with the dataset)
 
 # Run the full pipeline (cleaning -> all reports -> data dictionary)
 python scripts/run_all.py
