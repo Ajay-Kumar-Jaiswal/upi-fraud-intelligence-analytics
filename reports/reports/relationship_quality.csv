@@ -1,8 +1,0 @@
-relationship,total_records,matched,unmatched,match_pct,note
-transactions.user_id -> kyc_records.user_id,20000,6478,13522.0,32.39,Match rate statistically consistent with random ID overlap (see DATA_AUDIT.md Open Question #1).
-transactions.merchant_id -> merchants_master.merchant_id,20000,9631,10369.0,48.16,Match rate statistically consistent with random ID overlap (see DATA_AUDIT.md Open Question #1).
-chargebacks.txn_id -> transactions.txn_id,2800,2607,193.0,93.11,The one reliable identity join in this dataset (normalized format).
-chargebacks.user_id -> kyc_records.user_id,2800,885,1915.0,31.61,Same low-match pattern as transactions->KYC.
-chargebacks.merchant_id -> merchants_master.merchant_id,2800,1299,1501.0,46.39,Same low-match pattern as transactions->Merchants.
-kyc_records.user_id normalized-key collisions,36122,7202,,,5341 of 6114 duplicate-key groups contain rows with DIFFERENT full_name (distinct people sharing one ID).
-merchants_master.merchant_id normalized-key collisions,6198,1855,,,1310 of 1407 duplicate-key groups contain rows with DIFFERENT merchant_name.

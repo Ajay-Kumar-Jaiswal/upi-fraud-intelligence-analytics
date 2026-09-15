@@ -1,5 +1,0 @@
-dataset,raw_rows,duplicates_removed,missing_values_handled,invalid_values_flagged,rows_removed,rows_retained,rows_repaired_or_flagged
-transactions,20400,400,3872,0,400,20000,1410
-kyc_records,36400,278,15015,5871,278,36122,2896
-merchants_master,6210,12,4007,0,12,6198,501
-chargebacks,2884,84,1390,0,84,2800,220
